@@ -1,6 +1,6 @@
 resource "aws_key_pair" "eks" {
-  key_name   = "expense-key"
-  public_key = file("/Users/parthureddy/Desktop/users/eks.pub")
+  key_name   = "expense-eks"
+  public_key = file("~/.ssh/eks.pub")
 }
 
 module "eks" {
@@ -34,21 +34,21 @@ module "eks" {
   subnet_ids               = local.private_subnet_ids
   control_plane_subnet_ids = local.private_subnet_ids
 
-  # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["m6i.large", "m5.large", "m5n.large", "m5zn.large"]
-  }
+  instance_types = ["t3.small"]  # smaller, low vCPU
+   }
 
   eks_managed_node_groups = {
     blue = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["m5.xlarge"]
+      #ami_type       = "AL2023_x86_64"
+
+      instance_types = ["t3.small"]
       key_name       = aws_key_pair.eks.key_name
 
-      min_size     = 2
-      max_size     = 10
-      desired_size = 2
+      min_size     = 1
+      max_size     = 3
+      desired_size = 1
       iam_role_additional_policies = {
         AmazonEBSCSIDriverPolicy     = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
         AmazonEFSCSIDriverPolicy     = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
@@ -59,7 +59,7 @@ module "eks" {
 
   tags = merge(var.common_tags,
     {
-      Name = "${var.project_name}-${var.environment}-bastion"
+      Name = local.name
     }
   )
 }
