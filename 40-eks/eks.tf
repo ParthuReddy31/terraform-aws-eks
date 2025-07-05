@@ -25,7 +25,7 @@ module "eks" {
   }
 
   # Optional
-  cluster_endpoint_public_access = false
+  cluster_endpoint_public_access = true
 
   # Optional: Adds the current caller identity as an administrator via cluster access entry
   enable_cluster_creator_admin_permissions = true
@@ -34,16 +34,18 @@ module "eks" {
   subnet_ids               = local.private_subnet_ids
   control_plane_subnet_ids = local.private_subnet_ids
 
+
+
   eks_managed_node_group_defaults = {
-  instance_types = ["t3a.xlarge"]  # smaller, low vCPU
-   }
+    instance_types = ["t3.medium"] # smaller, low vCPU
+  }
 
   eks_managed_node_groups = {
     blue = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      #ami_type       = "AL2023_x86_64"
+      ami_type = "ami-05ffe3c48a9991133"
 
-      instance_types = ["t3a.xlarge"]
+      instance_types = ["t3.medium"]
       key_name       = aws_key_pair.eks.key_name
 
       min_size     = 1
