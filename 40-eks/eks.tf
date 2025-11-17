@@ -21,7 +21,6 @@ module "eks" {
     eks-pod-identity-agent = {}
     kube-proxy             = {}
     vpc-cni                = {}
-    metrics-server         = {}
   }
 
   # Optional
@@ -37,24 +36,38 @@ module "eks" {
 
 
   eks_managed_node_group_defaults = {
-    instance_types = ["t3.medium"] # smaller, low vCPU
+    instance_types = ["m5.large", "m5n.large", "m5zn.large"]
   }
 
   eks_managed_node_groups = {
     blue = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      ami_type = "ami-05ffe3c48a9991133"
+      ami_type = "AL2023_x86_64_STANDARD"
 
-      instance_types = ["t3.medium"]
+      instance_types = ["m5.large"]
       key_name       = aws_key_pair.eks.key_name
 
-      min_size     = 1
-      max_size     = 3
-      desired_size = 1
+      # Use private subnets for nodes (with dual NAT Gateway for HA)
+      subnet_ids = local.private_subnet_ids
+
+      min_size     = 2
+      max_size     = 10
+      desired_size = 2
+
+      # # Add taints to control scheduling
+      # taints = []
+
       iam_role_additional_policies = {
         AmazonEBSCSIDriverPolicy     = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
         AmazonEFSCSIDriverPolicy     = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
         AmazonEKSLoadBalancingPolicy = "arn:aws:iam::aws:policy/AmazonEKSLoadBalancingPolicy"
+      }
+
+      # Increase timeouts for node readiness
+      timeouts = {
+        create = "20m"
+        update = "20m"
+        delete = "20m"
       }
     }
   }
@@ -65,5 +78,3 @@ module "eks" {
     }
   )
 }
-
-# nothing to do
