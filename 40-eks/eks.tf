@@ -24,7 +24,7 @@ module "eks" {
   }
 
   # Optional
-  cluster_endpoint_public_access = true
+  cluster_endpoint_public_access = false
 
   # Optional: Adds the current caller identity as an administrator via cluster access entry
   enable_cluster_creator_admin_permissions = true
@@ -47,7 +47,7 @@ module "eks" {
       instance_types = ["m5.large"]
       key_name       = aws_key_pair.eks.key_name
 
-      # Use private subnets for nodes (with dual NAT Gateway for HA)
+      # Use private subnets for nodes (with VPC endpoints for AWS services)
       subnet_ids = local.private_subnet_ids
 
       min_size     = 2
